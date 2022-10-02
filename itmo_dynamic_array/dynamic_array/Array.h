@@ -1,5 +1,10 @@
 #pragma once
 
+// Forward declare the class template
+template<typename T>
+class Array;
+
+
 template<typename T>
 class Array final
 {
@@ -30,22 +35,13 @@ public:
 	{
 	public:
 		ConstIterator(const Array<T>* array, int startIdx, int lastIdxExclusive);
-
 		const T& Get() const;
 		void Next();
 		bool HasNext() const;
-
-		ConstIterator& operator++();
-		ConstIterator& operator++(int);
-		const T& operator*();
-
-		bool operator==(const ConstIterator& other) const;
-		bool operator!=(const ConstIterator& other) const;
 	protected:
 		const int _idxStep;
 		const int _lastIdxExclusive;
 		int _idx;
-
 	private:
 		const Array<T>* const _array;
 	};
@@ -54,9 +50,7 @@ public:
 	{
 	public:
 		Iterator(Array* array, int startIdx, int lastIdxExclusive);
-
 		void Set(const T& value);
-
 		T& operator*();
 	private:
 		Array<T>* const _array;
@@ -67,12 +61,54 @@ public:
 	Iterator ReverseIter();
 	ConstIterator ReverseIter() const;
 
-	Iterator begin();				//name required by for-range
-	Iterator end();					//name required by for-range
-	ConstIterator begin() const;	//name required by for-range
-	ConstIterator end() const;		//name required by for-range
-	ConstIterator cbegin() const;	//name required by for-range (actually not, but the name is used for integrity)
-	ConstIterator cend() const;		//name required by for-range (actually not, but the name is used for integrity)
+
+	//---------Fast Iterator--------------
+	class FastConstIter
+	{
+	public:
+		FastConstIter(const Array* array, int idx);
+		FastConstIter& operator++();
+		FastConstIter& operator++(int);
+		FastConstIter& operator--();
+		FastConstIter& operator--(int);
+		FastConstIter& operator+=(const FastConstIter& other);
+		FastConstIter& operator-=(const FastConstIter& other);
+		FastConstIter& operator+=(int idx);
+		FastConstIter& operator-=(int idx);
+		FastConstIter operator+(const FastConstIter& other) const;
+		FastConstIter operator-(const FastConstIter& other) const;
+		FastConstIter operator+(int idx) const;
+		FastConstIter operator-(int idx) const;
+		const T& operator*() const;
+		bool operator==(const FastConstIter& other) const;
+		bool operator!=(const FastConstIter& other) const;
+		operator int() const;
+	protected:
+		int _idx;
+	private:
+		const Array<T>* _array;
+	};
+
+	class FastIter : public FastConstIter
+	{
+	public:
+		FastIter(Array* array, int idx);
+		FastIter operator+(const FastIter& other) const;
+		FastIter operator-(const FastIter& other) const;
+		FastIter operator+(int idx) const;
+		FastIter operator-(int idx) const;
+		const T& operator*() const;
+		T& operator*();
+	private:
+		Array* _array;
+	};
+
+	FastIter begin();				//name required by for-range
+	FastIter end();					//name required by for-range
+	FastConstIter begin() const;	//name required by for-range
+	FastConstIter end() const;		//name required by for-range
+	FastConstIter cbegin() const;	//name required by for-range (actually not, but the name is used for integrity)
+	FastConstIter cend() const;		//name required by for-range (actually not, but the name is used for integrity)
 
 
 	//---------For testing purpose--------------
@@ -113,3 +149,4 @@ private:
 };
 #include "Array.tpp"
 #include "Array.Iterator.tpp"
+#include "Array.FastIterator.tpp"

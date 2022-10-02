@@ -133,6 +133,7 @@
     <ClInclude Include="Array.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Array.FastIterator.tpp" />
     <None Include="Array.Iterator.tpp" />
     <None Include="Array.tpp" />
   </ItemGroup>

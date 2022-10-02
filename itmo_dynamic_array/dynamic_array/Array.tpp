@@ -90,7 +90,7 @@ template <typename T>
 void Array<T>::Remove(int index)
 {
 	_values[index].~T();
-	_size--;
+	_size -= 1;
 	for (int i = index; i < _size; i++)
 		ReplaceWithCopyOrMove(_values + i + 1, _values + i);
 }
@@ -111,67 +111,6 @@ template <typename T>
 int Array<T>::Size() const
 {
 	return _size;
-}
-
-
-template <typename T>
-typename Array<T>::Iterator Array<T>::Iter()
-{
-	return Iterator(this, 0, _size);
-}
-
-template <typename T>
-typename Array<T>::ConstIterator Array<T>::Iter() const
-{
-	return ConstIterator(this, 0, _size);
-}
-
-template <typename T>
-typename Array<T>::Iterator Array<T>::ReverseIter()
-{
-	return Iterator(this, _size - 1, -1);
-}
-
-template <typename T>
-typename Array<T>::ConstIterator Array<T>::ReverseIter() const
-{
-	return ConstIterator(this, _size - 1, -1);
-}
-
-template <typename T>
-typename Array<T>::Iterator Array<T>::begin()
-{
-	return Iter();
-}
-
-template <typename T>
-typename Array<T>::Iterator Array<T>::end()
-{
-	return Iterator(this, _size, _size);
-}
-
-template <typename T>
-typename Array<T>::ConstIterator Array<T>::begin() const
-{
-	return cbegin();
-}
-
-template <typename T>
-typename Array<T>::ConstIterator Array<T>::end() const
-{
-	return cend();
-}
-
-template <typename T>
-typename Array<T>::ConstIterator Array<T>::cbegin() const
-{
-	return Iter();
-}
-
-template <typename T>
-typename Array<T>::ConstIterator Array<T>::cend() const
-{
-	return ConstIterator(this, _size, _size);
 }
 
 
@@ -239,3 +178,36 @@ void Array<T>::ReplaceWithCopyOrMove(T* source, T* dest, Choice<3>)
 {
 	*dest = T(*source);
 }
+
+
+
+template <typename T>
+typename Array<T>::Iterator Array<T>::Iter() { return Iterator(this, 0, _size); }
+
+template <typename T>
+typename Array<T>::ConstIterator Array<T>::Iter() const { return ConstIterator(this, 0, _size); }
+
+template <typename T>
+typename Array<T>::Iterator Array<T>::ReverseIter() { return Iterator(this, _size - 1, -1); }
+
+template <typename T>
+typename Array<T>::ConstIterator Array<T>::ReverseIter() const { return ConstIterator(this, _size - 1, -1); }
+
+
+template <typename T>
+typename Array<T>::FastIter Array<T>::begin() { return FastIter(this, 0); }
+
+template <typename T>
+typename Array<T>::FastIter Array<T>::end() { return FastIter(this, _size); }
+
+template <typename T>
+typename Array<T>::FastConstIter Array<T>::begin() const { return FastConstIter(this, 0); }
+
+template <typename T>
+typename Array<T>::FastConstIter Array<T>::end() const { return FastConstIter(this, _size); }
+
+template <typename T>
+typename Array<T>::FastConstIter Array<T>::cbegin() const { return FastConstIter(this, 0); }
+
+template <typename T>
+typename Array<T>::FastConstIter Array<T>::cend() const { return FastConstIter(this, _size); }

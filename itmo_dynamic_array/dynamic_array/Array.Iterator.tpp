@@ -12,7 +12,7 @@ Array<T>::ConstIterator::ConstIterator(const Array<T>* array, const int startIdx
 template <typename T>
 const T& Array<T>::ConstIterator::Get() const
 {
-	return (* _array)[_idx];
+	return (*_array)[_idx];
 }
 
 template <typename T>
@@ -25,39 +25,6 @@ template <typename T>
 bool Array<T>::ConstIterator::HasNext() const
 {
 	return _idx != _lastIdxExclusive;
-}
-
-template <typename T>
-typename Array<T>::ConstIterator& Array<T>::ConstIterator::operator++()
-{
-	Next();
-	return *this;
-}
-
-template <typename T>
-typename Array<T>::ConstIterator& Array<T>::ConstIterator::operator++(int)
-{
-	ConstIterator buffer = *this;
-	Next();
-	return buffer;
-}
-
-template <typename T>
-const T& Array<T>::ConstIterator::operator*()
-{
-	return Get();
-}
-
-template <typename T>
-bool Array<T>::ConstIterator::operator==(const ConstIterator& other) const
-{
-	return _array == other._array && _idx == other._idx;
-}
-
-template <typename T>
-bool Array<T>::ConstIterator::operator!=(const ConstIterator& other) const
-{
-	return !(*this == other);
 }
 
 

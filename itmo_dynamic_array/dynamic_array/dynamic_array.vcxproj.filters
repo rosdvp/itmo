@@ -27,5 +27,6 @@
   <ItemGroup>
     <None Include="Array.tpp" />
     <None Include="Array.Iterator.tpp" />
+    <None Include="Array.FastIterator.tpp" />
   </ItemGroup>
 </Project>
