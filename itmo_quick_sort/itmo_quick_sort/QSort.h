@@ -2,7 +2,7 @@
 #include <functional>
 #include <iostream>
 
-constexpr int COUNT_FOR_INSERT_SORT = 3;
+constexpr int COUNT_FOR_INSERT_SORT = 5;
 
 
 template<typename T, typename Compare>
