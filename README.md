@@ -1,4 +1,6 @@
-# Hammurabi (itmo_hammurabi)
+# Hammurabi
+*Папка itmo_hammurabi*
+
 * **Config** - константы игры для управления балансом.
 * **Model** - данные игры, отделенные от логики.
 * **View** - отвечает за ввод и вывод информации.
@@ -7,6 +9,8 @@
 
 *Файл сохранения - save.bin - лежит рядом с .exe файлом.*
 
-# Dynamic Array (itmo_dynamic_array)
+# Dynamic Array
+*Папка itmo_dynamic_array*
 
-# Quick Sort (itmo_quick_sort)
+# Quick Sort
+*Папка itmo_quick_sort*
