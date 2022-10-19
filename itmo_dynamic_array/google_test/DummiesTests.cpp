@@ -17,29 +17,12 @@ TEST(DummyCopyOnly, InsertAndRemove)
 	ASSERT_EQ(arr[0].Val, 1);
 }
 
-TEST(DummyCopyOnly, RemoveAndCheckDestruction)
-{
-	Array<DummyCopyOnly> arr;
-	arr.Insert(DummyCopyOnly(0));
-	arr.Insert(DummyCopyOnly(1));
-
-	const DummyCopyOnly* pLast = &arr[1];
-
-	arr.Remove(1);
-
-	ASSERT_EQ(pLast->IsDestructed, true);
-}
-
-TEST(DummyCopyOnly, InsertAndCheckReplace)
+TEST(DummyCopyOnly, CheckAssignmentUsageOnInsert)
 {
 	Array<DummyCopyOnly> arr;
 	arr.Insert(DummyCopyOnly(1));
-
-	const DummyCopyOnly* pLast = &arr[0];
-
 	arr.Insert(0, DummyCopyOnly(2));
-
-	ASSERT_EQ(pLast->Val, 2);
+	
 	ASSERT_EQ(arr[1].IsAssignUsed, true);
 }
 
@@ -57,15 +40,12 @@ TEST(DummyCopyAndMove, InsertAndRemove)
 	ASSERT_EQ(arr[0].Val, 1);
 }
 
-TEST(DummyCopyAndMove, InsertAndCheckReplace)
+TEST(DummyCopyAndMove, CheckAssignmentUsageOnInsert)
 {
 	Array<DummyCopyAndMove> arr;
 	arr.Insert(DummyCopyAndMove(1));
-
-	const DummyCopyAndMove* pLast = &arr[0];
-
 	arr.Insert(0, DummyCopyAndMove(2));
 
-	ASSERT_EQ(pLast->Val, 2);
+	ASSERT_EQ(arr[0].CreationType, DummyCopyAndMove::ECreationType::CopyAssign);
 	ASSERT_EQ(arr[1].CreationType, DummyCopyAndMove::ECreationType::MoveAssign);
 }

@@ -9,10 +9,12 @@ Array<T>::Array(): Array(DEFAULT_CAPACITY) { }
 
 template <typename T>
 Array<T>::Array(const int capacity)
-{
+{ 
 	_capacity = capacity;
 	_size     = 0;
-	_values   = static_cast<T*>(malloc(sizeof(T) * capacity));
+	_items   = static_cast<T*>(malloc(sizeof(T) * capacity));
+	for (int i = 0; i < _capacity; i++)
+		new(_items + i) T();
 }
 
 template <typename T>
@@ -20,23 +22,21 @@ Array<T>::Array(const Array<T>& other)
 {
 	_capacity = other._capacity;
 	_size     = other._size;
-	_values   = static_cast<T*>(malloc(sizeof(T) * _capacity));
-	memcpy(_values, other._values, sizeof(T) * _size);
+	_items   = static_cast<T*>(malloc(sizeof(T) * _capacity));
+	for (int i = 0; i < _capacity; i++)
+		new(_items + i) T(other._items[i]);
 }
 
 template <typename T>
 Array<T>::Array(Array<T>&& other) noexcept
 {
-	_capacity     = other._capacity;
-	_size         = other._size;
-	_values       = other._values;
-	other._values = nullptr;
+	SwapArray(other);
 }
 
 template <typename T>
 Array<T>::~Array()
 {
-	FreeValues();
+	TryDestructAndFreeItems();
 }
 
 template <typename T>
@@ -44,11 +44,8 @@ Array<T>& Array<T>::operator=(const Array<T>& other)
 {
 	if (this != &other)
 	{
-		FreeValues();
-		_capacity = other._capacity;
-		_size     = other._size;
-		_values   = static_cast<T*>(malloc(sizeof(T) * _capacity));
-		memcpy(_values, other._values, sizeof(T) * _size);
+		Array<T> temp(other);
+		SwapArray(temp);
 	}
 	return *this;
 }
@@ -57,13 +54,7 @@ template <typename T>
 Array<T>& Array<T>::operator=(Array<T>&& other) noexcept
 {
 	if (this != &other)
-	{
-		FreeValues();
-		_capacity     = other._capacity;
-		_size         = other._size;
-		_values       = other._values;
-		other._values = nullptr;
-	}
+		SwapArray(other);
 	return *this;
 }
 
@@ -78,33 +69,32 @@ void Array<T>::Insert(int index, const T& value)
 {
 	if (_size == _capacity)
 		IncreaseCapacity();
-	
-	for (int i = _size; i > index; i--)
-		ReplaceWithCopyOrMove(_values + i - 1, _values + i);
-	_size++;
 
-	_values[index] = value;
+	for (int i = _size; i > index; i--)
+		ReplaceByMoveOrCopy(_items + i - 1, _items + i);
+	_size++;
+	
+	ReplaceByCopy(&value, _items + index);
 }
 
 template <typename T>
 void Array<T>::Remove(int index)
 {
-	_values[index].~T();
 	_size -= 1;
 	for (int i = index; i < _size; i++)
-		ReplaceWithCopyOrMove(_values + i + 1, _values + i);
+		ReplaceByMoveOrCopy(_items + i + 1, _items + i);
 }
 
 template <typename T>
 const T& Array<T>::operator[](int index) const
 {
-	return _values[index];
+	return _items[index];
 }
 
 template <typename T>
 T& Array<T>::operator[](int index)
 {
-	return _values[index];
+	return _items[index];
 }
 
 template <typename T>
@@ -123,60 +113,111 @@ int Array<T>::GetCapacity() const
 template <typename T>
 const T* Array<T>::GetValuesPointer() const
 {
-	return _values;
+	return _items;
 }
 
 template <typename T>
 void Array<T>::IncreaseCapacity()
 {
-	_capacity    = static_cast<int>(_capacity * CAPACITY_EXPAND_K);
-	T* newValues = static_cast<T*>(malloc(_capacity * sizeof(T)));
-
-	for (int i = 0; i < _size; i++)
-		ReplaceWithCopyOrMove(_values + i, newValues + i);
-
-	free(_values);
-	_values = newValues;
+	int newCapacity = static_cast<int>(_capacity * CAPACITY_EXPAND_K);
+	T* newItems = static_cast<T*>(malloc(newCapacity * sizeof(T)));
+	RearrangeAllItemsByMoveOrCopy(newItems, _capacity);
+	for (int i = _capacity; i < newCapacity; i++)
+		new(newItems + i) T();
+	_capacity = newCapacity;
+	_items = newItems;
 }
 
 
 template <typename T>
-void Array<T>::FreeValues()
+void Array<T>::TryDestructAndFreeItems()
 {
-	if (_values != nullptr)
+	if (_items != nullptr)
 	{
-		for (int i = 0; i < _size; i++)
-			_values[i].~T();
-		free(_values);
+		for (int i = 0; i < _capacity; i++)
+			_items[i].~T();
+		free(_items);
 	}
 }
 
 template <typename T>
-template <typename U, typename>
-void Array<T>::ReplaceWithCopyOrMove(T* source, T* dest, Choice<0>)
+void Array<T>::SwapArray(Array<T>& other) noexcept
+{
+	std::swap(_capacity, other._capacity);
+	std::swap(_size, other._size);
+	_items = other._items;
+	other._items = nullptr;
+}
+
+template <typename T>
+template <typename U>
+std::enable_if_t<std::is_move_constructible<U>::value> Array<T>::
+RearrangeAllItemsByMoveOrCopy(T* dest, int count)
+{
+	for (int i = 0; i < count; i++)
+		new(dest + i) T(std::move(_items[i]));
+	free(_items);
+}
+
+template <typename T>
+template <typename U>
+std::enable_if_t<!std::is_move_constructible<U>::value> Array<T>::
+RearrangeAllItemsByMoveOrCopy(T* dest, int count)
+{
+	for (int i = 0; i < count; i++)
+		new(dest + i) T(_items[i]);
+	TryDestructAndFreeItems();
+}
+
+
+template <typename T>
+template <typename U>
+std::enable_if_t<std::is_move_assignable<U>::value || std::is_move_constructible<U>::value>
+Array<T>::ReplaceByMoveOrCopy(T* source, T* dest)
+{
+	ReplaceByMove(source, dest);
+}
+
+template <typename T>
+template <typename U>
+std::enable_if_t<!std::is_move_assignable<U>::value && !std::is_move_constructible<U>::value>
+Array<T>::ReplaceByMoveOrCopy(T* source, T* dest)
+{
+	ReplaceByCopy(source, dest);
+}
+
+template <typename T>
+template <typename U>
+std::enable_if_t<std::is_move_assignable<U>::value>
+Array<T>::ReplaceByMove(T* source, T* dest)
 {
 	*dest = std::move(*source);
 }
 
 template <typename T>
-template <typename U, typename>
-void Array<T>::ReplaceWithCopyOrMove(T* source, T* dest, Choice<1>)
+template <typename U>
+std::enable_if_t<!std::is_move_assignable<U>::value>
+Array<T>::ReplaceByMove(T* source, T* dest)
 {
-	*dest = T(std::move(*source));
+	(*dest).~T();
+	new(dest) T(std::move(*source));
 }
 
 template <typename T>
-template <typename U, typename>
-void Array<T>::ReplaceWithCopyOrMove(T* source, T* dest, Choice<2>)
+template <typename U>
+std::enable_if_t<std::is_copy_assignable<U>::value>
+Array<T>::ReplaceByCopy(const T* source, T* dest)
 {
 	*dest = *source;
 }
 
 template <typename T>
-template <typename U, typename>
-void Array<T>::ReplaceWithCopyOrMove(T* source, T* dest, Choice<3>)
+template <typename U>
+std::enable_if_t<!std::is_copy_assignable<U>::value>
+Array<T>::ReplaceByCopy(const T* source, T* dest)
 {
-	*dest = T(*source);
+	(*dest).~T();
+	new (dest) T(source);
 }
 
 

@@ -9,6 +9,8 @@ public:
 	bool IsAssignUsed;
 	bool IsDestructed;
 
+	DummyCopyOnly() : DummyCopyOnly(0) {}
+
 	DummyCopyOnly(const int val)
 		: Val(val), IsAssignUsed(false), IsDestructed(false) { }
 

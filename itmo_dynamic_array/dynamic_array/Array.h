@@ -17,7 +17,7 @@ public:
 
 	~Array();
 
-	Array<T>& operator=(const Array<T>& other);
+	Array<T>& operator=(const Array<T>& other); //although, copy-swap is used, stay for self-assignment optimization
 	Array<T>& operator=(Array<T>&& other) noexcept;
 
 	//---------Operations--------------
@@ -118,35 +118,53 @@ public:
 private:
 	static constexpr int DEFAULT_CAPACITY = 8;
 	static constexpr float CAPACITY_EXPAND_K = 2;
+	static constexpr bool IS_ITEMS_MOVABLE =
+		std::is_move_assignable<T>::value ||
+		std::is_move_constructible<T>::value;
 
 	int _capacity;
 	int _size;
 
-	T* _values;
+	T* _items;
 
 	void IncreaseCapacity();
-	void FreeValues();
-
+	void TryDestructAndFreeItems();
+	void SwapArray(Array<T>& other) noexcept;
 
 	//---------Metaprogramming magic--------------
+	template<typename U = T>
+	std::enable_if_t<std::is_move_constructible<U>::value>
+	RearrangeAllItemsByMoveOrCopy(T* dest, int count);
 
-	template <int I> struct Choice : Choice<I + 1> { static_assert(I < 4, "Array can work only with movable or copyable type"); };
-	template <> struct Choice<4> { };
+	template<typename U = T>
+	std::enable_if_t<!std::is_move_constructible<U>::value>
+	RearrangeAllItemsByMoveOrCopy(T* dest, int count);
 
-	void ReplaceWithCopyOrMove(T* source, T* dest)
-	{
-		ReplaceWithCopyOrMove(source, dest, Choice<0>());
-	}
+	template<typename U = T>
+	std::enable_if_t<std::is_move_assignable<U>::value || std::is_move_constructible<U>::value>
+	ReplaceByMoveOrCopy(T* source, T* dest);
 
-	template<typename U = T, typename = std::enable_if_t<std::is_move_assignable<U>::value>>
-	void ReplaceWithCopyOrMove(T* source, T* dest, Choice<0>);
-	template<typename U = T, typename = std::enable_if_t<std::is_move_constructible<U>::value>>
-	void ReplaceWithCopyOrMove(T* source, T* dest, Choice<1>);
-	template<typename U = T, typename = std::enable_if_t<std::is_copy_assignable<U>::value>>
-	void ReplaceWithCopyOrMove(T* source, T* dest, Choice<2>);
-	template<typename U = T, typename = std::enable_if_t<std::is_copy_constructible<U>::value>>
-	void ReplaceWithCopyOrMove(T* source, T* dest, Choice<3>);
+	template<typename U = T>
+	std::enable_if_t<!std::is_move_assignable<U>::value && !std::is_move_constructible<U>::value>
+	ReplaceByMoveOrCopy(T* source, T* dest);
+
+	template<typename U = T>
+	std::enable_if_t<std::is_move_assignable<U>::value>
+	ReplaceByMove(T* source, T* dest);
+
+	template<typename U = T>
+	std::enable_if_t<!std::is_move_assignable<U>::value>
+	ReplaceByMove(T* source, T* dest);
+
+	template<typename U = T> 
+	std::enable_if_t<std::is_copy_assignable<U>::value>
+	ReplaceByCopy(const T* source, T* dest);
+
+	template<typename U = T>
+	std::enable_if_t<!std::is_copy_assignable<U>::value>
+	ReplaceByCopy(const T* source, T* dest);
 };
+
 #include "Array.tpp"
 #include "Array.Iterator.tpp"
 #include "Array.FastIterator.tpp"

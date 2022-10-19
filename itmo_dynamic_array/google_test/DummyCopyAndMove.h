@@ -10,6 +10,7 @@ public:
 	int Val;
 	ECreationType CreationType;
 
+	DummyCopyAndMove() : DummyCopyAndMove(0) { }
 
 	DummyCopyAndMove(const int val) : Val(val), CreationType(Construct) { }
 
