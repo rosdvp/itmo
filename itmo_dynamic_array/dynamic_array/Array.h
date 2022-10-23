@@ -118,9 +118,7 @@ public:
 private:
 	static constexpr int DEFAULT_CAPACITY = 8;
 	static constexpr float CAPACITY_EXPAND_K = 2;
-	static constexpr bool IS_ITEMS_MOVABLE =
-		std::is_move_assignable<T>::value ||
-		std::is_move_constructible<T>::value;
+	static constexpr bool IS_ITEMS_MOVABLE = std::is_move_constructible<T>::value;
 
 	int _capacity;
 	int _size;
@@ -132,37 +130,61 @@ private:
 	void SwapArray(Array<T>& other) noexcept;
 
 	//---------Metaprogramming magic--------------
-	template<typename U = T>
-	std::enable_if_t<std::is_move_constructible<U>::value>
-	RearrangeAllItemsByMoveOrCopy(T* dest, int count);
-
-	template<typename U = T>
-	std::enable_if_t<!std::is_move_constructible<U>::value>
-	RearrangeAllItemsByMoveOrCopy(T* dest, int count);
-
+	/**
+	 * \param dest MUST be constructed.
+	 */
 	template<typename U = T>
 	std::enable_if_t<std::is_move_assignable<U>::value || std::is_move_constructible<U>::value>
 	ReplaceByMoveOrCopy(T* source, T* dest);
 
+	/**
+	 * \param dest MUST be constructed.
+	 */
 	template<typename U = T>
 	std::enable_if_t<!std::is_move_assignable<U>::value && !std::is_move_constructible<U>::value>
 	ReplaceByMoveOrCopy(T* source, T* dest);
 
+	/**
+	* \param dest MUST be constructed.
+	*/
 	template<typename U = T>
 	std::enable_if_t<std::is_move_assignable<U>::value>
 	ReplaceByMove(T* source, T* dest);
 
+	/**
+	* \param dest MUST be constructed.
+	*/
 	template<typename U = T>
 	std::enable_if_t<!std::is_move_assignable<U>::value>
 	ReplaceByMove(T* source, T* dest);
 
+	/**
+	* \param dest MUST be constructed.
+	*/
 	template<typename U = T> 
 	std::enable_if_t<std::is_copy_assignable<U>::value>
 	ReplaceByCopy(const T* source, T* dest);
 
+	/**
+	* \param dest MUST be constructed.
+	*/
 	template<typename U = T>
 	std::enable_if_t<!std::is_copy_assignable<U>::value>
 	ReplaceByCopy(const T* source, T* dest);
+
+	/**
+	 * \param dest MUST NOT be constructed
+	 */
+	template<typename U = T>
+	std::enable_if_t<std::is_move_constructible<U>::value>
+	ConstructByMoveOrCopy(T& source, T* dest);
+
+	/**
+	 * \param dest MUST NOT be constructed
+	 */
+	template<typename U = T>
+	std::enable_if_t<!std::is_move_constructible<U>::value>
+	ConstructByMoveOrCopy(T& source, T* dest);
 };
 
 #include "Array.tpp"

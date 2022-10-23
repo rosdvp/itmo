@@ -20,10 +20,13 @@ TEST(DummyCopyOnly, InsertAndRemove)
 TEST(DummyCopyOnly, CheckAssignmentUsageOnInsert)
 {
 	Array<DummyCopyOnly> arr;
+	arr.Insert(DummyCopyOnly(0));
 	arr.Insert(DummyCopyOnly(1));
 	arr.Insert(0, DummyCopyOnly(2));
-	
+
+	ASSERT_EQ(arr[0].IsAssignUsed, true);
 	ASSERT_EQ(arr[1].IsAssignUsed, true);
+	ASSERT_EQ(arr[2].IsAssignUsed, false);
 }
 
 
@@ -43,9 +46,11 @@ TEST(DummyCopyAndMove, InsertAndRemove)
 TEST(DummyCopyAndMove, CheckAssignmentUsageOnInsert)
 {
 	Array<DummyCopyAndMove> arr;
+	arr.Insert(DummyCopyAndMove(0));
 	arr.Insert(DummyCopyAndMove(1));
 	arr.Insert(0, DummyCopyAndMove(2));
 
 	ASSERT_EQ(arr[0].CreationType, DummyCopyAndMove::ECreationType::CopyAssign);
 	ASSERT_EQ(arr[1].CreationType, DummyCopyAndMove::ECreationType::MoveAssign);
+	ASSERT_EQ(arr[2].CreationType, DummyCopyAndMove::ECreationType::MoveConstruct);
 }
