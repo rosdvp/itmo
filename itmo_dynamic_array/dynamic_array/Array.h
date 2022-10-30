@@ -113,7 +113,7 @@ public:
 
 	//---------For testing purpose--------------
 	int GetCapacity() const;
-	const T* GetValuesPointer() const;
+	const T* GetItemsPointer() const;
 
 private:
 	static constexpr int DEFAULT_CAPACITY = 8;

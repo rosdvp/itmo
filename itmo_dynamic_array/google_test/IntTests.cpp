@@ -293,7 +293,7 @@ TEST(Int, CopyConstruct)
 	ASSERT_EQ(arrA[0], arrB[0]);
 	ASSERT_EQ(arrA[1], arrB[1]);
 	ASSERT_EQ(arrA.GetCapacity(), arrB.GetCapacity());
-	ASSERT_NE(arrA.GetValuesPointer(), arrB.GetValuesPointer());
+	ASSERT_NE(arrA.GetItemsPointer(), arrB.GetItemsPointer());
 
 	arrA.Remove(0);
 	arrB.Insert(2);
@@ -322,7 +322,7 @@ TEST(Int, CopyAssign)
 	ASSERT_EQ(arrA[0], arrB[0]);
 	ASSERT_EQ(arrA[1], arrB[1]);
 	ASSERT_EQ(arrA.GetCapacity(), arrB.GetCapacity());
-	ASSERT_NE(arrA.GetValuesPointer(), arrB.GetValuesPointer());
+	ASSERT_NE(arrA.GetItemsPointer(), arrB.GetItemsPointer());
 }
 
 TEST(Int, CopyAssignSelf)
@@ -330,10 +330,10 @@ TEST(Int, CopyAssignSelf)
 	Array<int> arrA;
 	arrA.Insert(0);
 	arrA.Insert(1);
-	const auto valuesPointer = arrA.GetValuesPointer();
+	const auto valuesPointer = arrA.GetItemsPointer();
 	arrA = arrA;
 
-	ASSERT_EQ(arrA.GetValuesPointer(), valuesPointer);
+	ASSERT_EQ(arrA.GetItemsPointer(), valuesPointer);
 	ASSERT_EQ(arrA.Size(), 2);
 	ASSERT_EQ(arrA[0], 0);
 	ASSERT_EQ(arrA[1], 1);
@@ -345,10 +345,12 @@ TEST(Int, MoveConstruct)
 	arrA.Insert(0);
 	arrA.Insert(1);
 	const int capA = arrA.GetCapacity();
+	const int* itemsA = arrA.GetItemsPointer();
 
 	Array<int> arrB(std::move(arrA));
 
-	ASSERT_EQ(arrA.GetValuesPointer(), nullptr);
+	ASSERT_EQ(arrA.GetItemsPointer(), nullptr);
+	ASSERT_EQ(arrB.GetItemsPointer(), itemsA);
 	ASSERT_EQ(arrB.Size(), 2);
 	ASSERT_EQ(arrB.GetCapacity(), capA);
 	ASSERT_EQ(arrB[0], 0);
@@ -368,12 +370,15 @@ TEST(Int, MoveAssign)
 	arrA.Insert(0);
 	arrA.Insert(1);
 	const int capA = arrA.GetCapacity();
+	const int* itemsA = arrA.GetItemsPointer();
 
 	Array<int> arrB;
+	const int* itemsB = arrB.GetItemsPointer();
 	arrB.Insert(2);
 	arrB = std::move(arrA);
 
-	ASSERT_EQ(arrA.GetValuesPointer(), nullptr);
+	ASSERT_EQ(arrA.GetItemsPointer(), itemsB);
+	ASSERT_EQ(arrB.GetItemsPointer(), itemsA);
 	ASSERT_EQ(arrB.Size(), 2);
 	ASSERT_EQ(arrB.GetCapacity(), capA);
 	ASSERT_EQ(arrB[0], 0);
@@ -388,7 +393,7 @@ TEST(Int, MoveAssignSelf)
 
 	arrA = std::move(arrA);
 
-	ASSERT_NE(arrA.GetValuesPointer(), nullptr);
+	ASSERT_NE(arrA.GetItemsPointer(), nullptr);
 	ASSERT_EQ(arrA.Size(), 2);
 	ASSERT_EQ(arrA[0], 0);
 	ASSERT_EQ(arrA[1], 1);

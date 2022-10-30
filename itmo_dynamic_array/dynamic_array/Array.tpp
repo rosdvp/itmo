@@ -28,6 +28,7 @@ Array<T>::Array(const Array<T>& other)
 template <typename T>
 Array<T>::Array(Array<T>&& other) noexcept
 {
+	_items = nullptr;
 	SwapArray(other);
 }
 
@@ -119,7 +120,7 @@ int Array<T>::GetCapacity() const
 }
 
 template <typename T>
-const T* Array<T>::GetValuesPointer() const
+const T* Array<T>::GetItemsPointer() const
 {
 	return _items;
 }
@@ -152,8 +153,7 @@ void Array<T>::SwapArray(Array<T>& other) noexcept
 {
 	std::swap(_capacity, other._capacity);
 	std::swap(_size, other._size);
-	_items = other._items;
-	other._items = nullptr;
+	std::swap(_items, other._items);
 }
 
 template <typename T>

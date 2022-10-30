@@ -147,7 +147,7 @@ TEST(String, CopyConstruct)
 	ASSERT_EQ(arrA[0], arrB[0]);
 	ASSERT_EQ(arrA[1], arrB[1]);
 	ASSERT_EQ(arrA.GetCapacity(), arrB.GetCapacity());
-	ASSERT_NE(arrA.GetValuesPointer(), arrB.GetValuesPointer());
+	ASSERT_NE(arrA.GetItemsPointer(), arrB.GetItemsPointer());
 
 	arrA.Remove(0);
 	arrB.Insert("222");
@@ -176,7 +176,7 @@ TEST(String, CopyAssign)
 	ASSERT_EQ(arrA[0], arrB[0]);
 	ASSERT_EQ(arrA[1], arrB[1]);
 	ASSERT_EQ(arrA.GetCapacity(), arrB.GetCapacity());
-	ASSERT_NE(arrA.GetValuesPointer(), arrB.GetValuesPointer());
+	ASSERT_NE(arrA.GetItemsPointer(), arrB.GetItemsPointer());
 }
 
 TEST(String, CopyAssignSelf)
@@ -184,10 +184,10 @@ TEST(String, CopyAssignSelf)
 	Array<std::string> arrA;
 	arrA.Insert("0");
 	arrA.Insert("11");
-	const auto valuesPointer = arrA.GetValuesPointer();
+	const auto valuesPointer = arrA.GetItemsPointer();
 	arrA = arrA;
 
-	ASSERT_EQ(arrA.GetValuesPointer(), valuesPointer);
+	ASSERT_EQ(arrA.GetItemsPointer(), valuesPointer);
 	ASSERT_EQ(arrA.Size(), 2);
 	ASSERT_EQ(arrA[0], "0");
 	ASSERT_EQ(arrA[1], "11");
@@ -199,10 +199,12 @@ TEST(String, MoveConstruct)
 	arrA.Insert("0");
 	arrA.Insert("11");
 	const int capA = arrA.GetCapacity();
+	const std::string* itemsA = arrA.GetItemsPointer();
 
 	Array<std::string> arrB(std::move(arrA));
 
-	ASSERT_EQ(arrA.GetValuesPointer(), nullptr);
+	ASSERT_EQ(arrA.GetItemsPointer(), nullptr);
+	ASSERT_EQ(arrB.GetItemsPointer(), itemsA);
 	ASSERT_EQ(arrB.Size(), 2);
 	ASSERT_EQ(arrB.GetCapacity(), capA);
 	ASSERT_EQ(arrB[0], "0");
@@ -222,12 +224,15 @@ TEST(String, MoveAssign)
 	arrA.Insert("0");
 	arrA.Insert("11");
 	const int capA = arrA.GetCapacity();
+	const std::string* itemsA = arrA.GetItemsPointer();
 
 	Array<std::string> arrB;
+	const std::string* itemsB = arrB.GetItemsPointer();
 	arrB.Insert("222");
 	arrB = std::move(arrA);
 
-	ASSERT_EQ(arrA.GetValuesPointer(), nullptr);
+	ASSERT_EQ(arrA.GetItemsPointer(), itemsB);
+	ASSERT_EQ(arrB.GetItemsPointer(), itemsA);
 	ASSERT_EQ(arrB.Size(), 2);
 	ASSERT_EQ(arrB.GetCapacity(), capA);
 	ASSERT_EQ(arrB[0], "0");
@@ -242,7 +247,7 @@ TEST(String, MoveAssignSelf)
 
 	arrA = std::move(arrA);
 
-	ASSERT_NE(arrA.GetValuesPointer(), nullptr);
+	ASSERT_NE(arrA.GetItemsPointer(), nullptr);
 	ASSERT_EQ(arrA.Size(), 2);
 	ASSERT_EQ(arrA[0], "0");
 	ASSERT_EQ(arrA[1], "11");
