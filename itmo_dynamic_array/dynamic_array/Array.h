@@ -1,8 +1,5 @@
 #pragma once
 
-// Forward declare the class template
-template<typename T>
-class Array;
 
 
 template<typename T>
